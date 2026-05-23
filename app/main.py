@@ -16,7 +16,7 @@ client = Client(API_KEY, API_SECRET)
 # IMPORTANT
 client.FUTURES_URL = 'https://testnet.binancefuture.com/fapi'
 
-symbol = "ADAUSDT"
+symbol = "BTCUSDT"
 leverage = 10
 quantity = 0.001
 
