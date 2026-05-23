@@ -1,9 +1,12 @@
+from flask import Flask, request, jsonify
 from binance.client import Client
 from dotenv import load_dotenv
 import os
 import time
 
 load_dotenv()
+
+app = Flask(__name__)
 
 API_KEY = os.getenv("API_KEY")
 API_SECRET = os.getenv("API_SECRET")
@@ -13,7 +16,7 @@ client = Client(API_KEY, API_SECRET)
 # IMPORTANT
 client.FUTURES_URL = 'https://testnet.binancefuture.com/fapi'
 
-symbol = "BTCUSDT"
+symbol = "ADAUSDT"
 leverage = 10
 quantity = 0.001
 
@@ -76,20 +79,37 @@ def close_position():
             )
             print("CLOSE SHORT")
 
-while True:
+@app.route('/webhook', methods=['POST'])
+def webhook():
 
-    # STEP 1: open long
-    open_long()
-    time.sleep(60)
+    data = request.json
 
-    # STEP 2: close
+    print("Webhook received:", data)
+
+    value = float(data["test"])
+
+    # Close existing position first
     close_position()
-    time.sleep(2)
 
-    # STEP 3: open short
-    open_short()
-    time.sleep(60)
+    # Trading logic
+    if value > 1:
+        open_long()
+        return jsonify({
+            "message": "LONG opened",
+            "value": value
+        })
 
-    # STEP 4: close
-    close_position()
-    time.sleep(2)
+    elif value < 1:
+        open_short()
+        return jsonify({
+            "message": "SHORT opened",
+            "value": value
+        })
+
+    return jsonify({
+        "message": "No trade",
+        "value": value
+    })
+    
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)

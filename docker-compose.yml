@@ -4,11 +4,9 @@ services:
   bot:
     build: .
     container_name: trading-bot
-    # volumes:
-    #   - ./.venv/lib/python3.11/site-packages:/usr/local/lib/python3.11/site-packages
-    #   - .:/app
     env_file:
       - .env
     restart: unless-stopped
-    command: ["python", "app/main.py"]
-    # command: tail -F anything
+    command: ["python", "-u", "app/main.py"]
+    ports:
+      - "80:5000"
