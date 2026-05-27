@@ -96,11 +96,13 @@ def close_position():
 @app.route('/webhook', methods=['POST'])
 def webhook():
 
-    data = request.json
+    data = request.get_json(force=True)
 
     print("Webhook received:", data)
     
     logging.info(f"Webhook received: {data}")
+    logging.info(f"Headers: {dict(request.headers)}")
+    logging.info(f"Raw body: {request.data}")
 
     value = float(data["test"])
 
