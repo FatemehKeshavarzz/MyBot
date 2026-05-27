@@ -3,6 +3,7 @@ from binance.client import Client
 from dotenv import load_dotenv
 import os
 import time
+import logging
 
 load_dotenv()
 
@@ -20,6 +21,15 @@ symbol = "BTCUSDT"
 leverage = 10
 quantity = 0.001
 
+# =========================
+# LOGGING SETUP
+# =========================
+logging.basicConfig(
+    filename="webhook_logs.txt",
+    level=logging.INFO,
+    format="%(asctime)s - %(message)s"
+)
+
 print(f"Leverage set")
 
 # Set leverage
@@ -28,9 +38,7 @@ client.futures_change_leverage(
     leverage=leverage
 )
 
-print(f"Leverage set to {leverage}x")
-
-print("Bot started with 10x leverage")
+print(f"Bot started with leverage set to {leverage}x")
 
 def open_long():
     order = client.futures_create_order(
@@ -40,6 +48,8 @@ def open_long():
         quantity=quantity
     )
     print("OPEN LONG")
+    logging.info("OPEN LONG executed")
+    
     return order
 
 def open_short():
@@ -50,6 +60,8 @@ def open_short():
         quantity=quantity
     )
     print("OPEN SHORT")
+    logging.info("OPEN SHORT executed")
+    
     return order
 
 def close_position():
@@ -68,6 +80,7 @@ def close_position():
                 quantity=abs(amt)
             )
             print("CLOSE LONG")
+            logging.info("CLOSE LONG executed")
 
         elif amt < 0:
             # close short
@@ -78,6 +91,7 @@ def close_position():
                 quantity=abs(amt)
             )
             print("CLOSE SHORT")
+            logging.info("CLOSE SHORT executed")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -85,6 +99,8 @@ def webhook():
     data = request.json
 
     print("Webhook received:", data)
+    
+    logging.info(f"Webhook received: {data}")
 
     value = float(data["test"])
 
@@ -94,6 +110,9 @@ def webhook():
     # Trading logic
     if value > 1:
         open_long()
+        
+        logging.info(f"LONG opened | value={value}")
+        
         return jsonify({
             "message": "LONG opened",
             "value": value
@@ -101,10 +120,15 @@ def webhook():
 
     elif value < 1:
         open_short()
+        
+        logging.info(f"SHORT opened | value={value}")
+
         return jsonify({
             "message": "SHORT opened",
             "value": value
         })
+
+    logging.info(f"No trade | value={value}")
 
     return jsonify({
         "message": "No trade",
